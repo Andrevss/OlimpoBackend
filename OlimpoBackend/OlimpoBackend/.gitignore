@@ -1,0 +1,19 @@
+# Build results
+bin/
+obj/
+*.user
+*.suo
+/.vs/
+
+# Configuration files with sensitive data
+appsettings.Development.json
+
+# Logs
+*.log
+Logs/
+
+# Environment variables
+.env
+
+# Data folder (your stock file)
+Data/

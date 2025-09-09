@@ -18,6 +18,7 @@
         [HttpGet]
         public async Task<ActionResult<List<Produto>>> ObterTodos()
         {
+            Console.WriteLine("Endpoint /api/produtos foi chamado");  // LOG
             var produtos = await _estoqueService.ObterProdutos();
 
             // Adicionar estoque disponível em tempo real

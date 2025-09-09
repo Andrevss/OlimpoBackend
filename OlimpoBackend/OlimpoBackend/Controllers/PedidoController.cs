@@ -5,6 +5,13 @@
     using OlimpoBackend.Services;
     using System.Text.Json;
 
+    // Adicione este modelo para receber os dados do frete
+    public class CalcularFreteRequest
+    {
+        public string Cep { get; set; }
+        public List<ItemPedidoRequest> Itens { get; set; }
+    }
+
     [ApiController]
     [Route("api/[controller]")]
     public class PedidosController : ControllerBase
@@ -27,14 +34,16 @@
         }
 
         [HttpPost("calcular-frete")]
-        public async Task<IActionResult> CalcularFrete([FromBody] dynamic request)
+        public async Task<IActionResult> CalcularFrete([FromBody] CalcularFreteRequest request)
         {
             try
             {
-                string cep = request.cep;
-                var itens = JsonSerializer.Deserialize<List<ItemPedidoRequest>>(request.itens.ToString());
+                if (request == null || string.IsNullOrEmpty(request.Cep) || request.Itens == null)
+                {
+                    return BadRequest(new { erro = "Dados inválidos" });
+                }
 
-                var valorFrete = await _correiosService.CalcularFrete(cep, itens);
+                var valorFrete = await _correiosService.CalcularFrete(request.Cep, request.Itens);
                 return Ok(new { valorFrete });
             }
             catch (Exception ex)

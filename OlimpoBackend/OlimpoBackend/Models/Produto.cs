@@ -39,4 +39,10 @@
         public int Quantidade { get; set; }
         public string? Tamanho { get; set; }
     }
+
+    public class CalcularFreteRequest
+    {
+        public string Cep { get; set; }
+        public List<ItemPedidoRequest> Itens { get; set; }
+    }
 }

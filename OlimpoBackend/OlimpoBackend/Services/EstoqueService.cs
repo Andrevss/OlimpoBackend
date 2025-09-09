@@ -11,20 +11,27 @@
         private static readonly object _lock = new();
         private readonly TimeSpan _tempoReserva = TimeSpan.FromMinutes(15);
 
-        public EstoqueService(IConfiguration configuration)
+        private static readonly JsonSerializerOptions _jsonOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            PropertyNameCaseInsensitive = true,
+            WriteIndented = true
+        };
+
+        public EstoqueService(IConfiguration configuration, IWebHostEnvironment env)
         {
             _configuration = configuration;
-            _arquivoEstoque = Path.Combine(Directory.GetCurrentDirectory(), "Data", "estoque.json");
+
+            // Usa o ContentRootPath para garantir que pegue a raiz do projeto
+            _arquivoEstoque = Path.Combine(env.ContentRootPath, "Data", "estoque.json");
             Directory.CreateDirectory(Path.GetDirectoryName(_arquivoEstoque));
+
+            Console.WriteLine($"[DEBUG] Caminho do estoque: {_arquivoEstoque}");
         }
 
         private async Task SalvarEstoque(List<Produto> produtos)
         {
-            var json = JsonSerializer.Serialize(produtos, new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            });
+            var json = JsonSerializer.Serialize(produtos, _jsonOptions);
             await File.WriteAllTextAsync(_arquivoEstoque, json);
         }
 
@@ -32,13 +39,15 @@
         {
             if (!File.Exists(_arquivoEstoque))
             {
-                var produtosIniciais = _configuration.GetSection("Produtos").Get<List<Produto>>();
+                var produtosIniciais = _configuration.GetSection("Produtos").Get<List<Produto>>() ?? new();
                 await SalvarEstoque(produtosIniciais);
                 return produtosIniciais;
             }
+
             var json = await File.ReadAllTextAsync(_arquivoEstoque);
-            return JsonSerializer.Deserialize<List<Produto>>(json) ?? new List<Produto>();
+            return JsonSerializer.Deserialize<List<Produto>>(json, _jsonOptions) ?? new List<Produto>();
         }
+
 
         private int ContarReservas(int produtoId, string tamanho)
         {
